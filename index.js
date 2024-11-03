@@ -44,6 +44,55 @@ async function run() {
       }
     });
 
+    // Add a new skill
+    app.post("/skills", async (req, res) => {
+      const skill = req.body;
+      try {
+        const result = await skillCollection.insertOne(skill);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Failed to add skill", error });
+      }
+    });
+
+    // Edit an existing skill
+    app.put("/skills/:id", async (req, res) => {
+      const skillId = req.params.id;
+      const updatedSkill = req.body;
+      try {
+        const result = await skillCollection.updateOne(
+          { _id: new ObjectId(skillId) },
+          { $set: updatedSkill }
+        );
+        if (result.modifiedCount === 1) {
+          res.send({ message: "Skill updated successfully" });
+        } else {
+          res
+            .status(404)
+            .send({ message: "Skill not found or no changes made" });
+        }
+      } catch (error) {
+        res.status(500).send({ message: "Failed to update skill", error });
+      }
+    });
+
+    // Delete a skill by ID
+    app.delete("/skills/:id", async (req, res) => {
+      const id = req.params.id;
+      try {
+        const result = await skillCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+        if (result.deletedCount === 1) {
+          res.send({ message: "Skill deleted successfully" });
+        } else {
+          res.status(404).send({ message: "Skill not found" });
+        }
+      } catch (error) {
+        res.status(500).send({ message: "Failed to delete skill", error });
+      }
+    });
+
     // Fetch all projects
     app.get("/projects", async (req, res) => {
       try {
@@ -101,7 +150,7 @@ async function run() {
       }
     });
 
-    // get links from db
+    // Get links from db
     const linkCollection = client
       .db("sabbir-hassan-portfolio-db")
       .collection("links");
