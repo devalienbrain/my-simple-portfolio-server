@@ -7,7 +7,6 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware
-// app.use(cors());
 app.use(
   cors({
     origin: [
@@ -30,44 +29,62 @@ async function run() {
   try {
     // await client.connect();
 
-    const skilCollection = client.db("sabbir-hassan-portfolio-db").collection("skills");
-    const projectCollection = client.db("sabbir-hassan-portfolio-db").collection("projects");
-    const linkCollection = client.db("sabbir-hassan-portfolio-db").collection("links");
+    const skillCollection = client.db("sabbir-hassan-portfolio-db").collection("skills");
 
-    // Fetch all users
+    // Fetch all skills
     app.get("/skills", async (req, res) => {
-      const query = skilCollection.find();
-      const result = await query.toArray();
-      res.send(result);
+      try {
+        const skills = await skillCollection.find().toArray();
+        res.send(skills);
+      } catch (error) {
+        res.status(500).send({ message: "Failed to fetch skills data", error });
+      }
     });
 
-    // Fetch a user by Firebase uid
-    app.get("/skill/:id", async (req, res) => {
-      const skillId = req.params.uid;
-      const query = { id: skillId };
-      const result = await userCollection.findOne(query);
-      res.send(result);
+    // Fetch a specific skill by ID
+    app.get("/skills/:id", async (req, res) => {
+      const skillId = req.params.id;
+      try {
+        const skill = await skillCollection.findOne({ _id: new ObjectId(skillId) });
+        if (skill) {
+          res.send(skill);
+        } else {
+          res.status(404).send({ message: "Skill not found" });
+        }
+      } catch (error) {
+        res.status(500).send({ message: "Failed to fetch skill", error });
+      }
     });
 
-    // Add a new user to the collection
+    // Add a new skill to the collection
     app.post("/skills", async (req, res) => {
       const skill = req.body;
-      const result = await skilCollection.insertOne(skill);
-      res.send(result);
+      try {
+        const result = await skillCollection.insertOne(skill);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Failed to add skill", error });
+      }
     });
 
-
-    // Delete user by id
+    // Delete a skill by ID
     app.delete("/skills/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await userCollection.deleteOne(query);
-      res.send(result);
+      try {
+        const result = await skillCollection.deleteOne({ _id: new ObjectId(id) });
+        if (result.deletedCount === 1) {
+          res.send({ message: "Skill deleted successfully" });
+        } else {
+          res.status(404).send({ message: "Skill not found" });
+        }
+      } catch (error) {
+        res.status(500).send({ message: "Failed to delete skill", error });
+      }
     });
-    // await client.db("admin").command({ ping: 1 });
-    console.log("Hassan's simple portfolio server connected successfully to mongodb..");
+
+    console.log("Connected to MongoDB successfully.");
   } finally {
-    // await client.close(); // Commented out for persistent connection
+    // Commented out for persistent connection
   }
 }
 run().catch(console.error);
