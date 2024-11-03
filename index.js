@@ -101,6 +101,23 @@ async function run() {
       }
     });
 
+    // get links from db
+    const linkCollection = client
+      .db("sabbir-hassan-portfolio-db")
+      .collection("links");
+
+    // Fetch resume links
+    app.get("/links", async (req, res) => {
+      try {
+        const links = await linkCollection.findOne({}); // Assumes a single document
+        res.send(links);
+      } catch (error) {
+        res
+          .status(500)
+          .send({ message: "Failed to fetch resume links", error });
+      }
+    });
+
     console.log("Connected to MongoDB successfully.");
   } finally {
     // await client.close(); // Commented out for persistent connection
