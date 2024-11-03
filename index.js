@@ -9,9 +9,7 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-    ],
+    origin: ["http://localhost:5173"],
   })
 );
 app.use(express.json());
@@ -29,7 +27,12 @@ async function run() {
   try {
     // await client.connect();
 
-    const skillCollection = client.db("sabbir-hassan-portfolio-db").collection("skills");
+    const skillCollection = client
+      .db("sabbir-hassan-portfolio-db")
+      .collection("skills");
+    const projectCollection = client
+      .db("sabbir-hassan-portfolio-db")
+      .collection("projects");
 
     // Fetch all skills
     app.get("/skills", async (req, res) => {
@@ -41,50 +44,66 @@ async function run() {
       }
     });
 
-    // Fetch a specific skill by ID
-    app.get("/skills/:id", async (req, res) => {
-      const skillId = req.params.id;
+    // Fetch all projects
+    app.get("/projects", async (req, res) => {
       try {
-        const skill = await skillCollection.findOne({ _id: new ObjectId(skillId) });
-        if (skill) {
-          res.send(skill);
-        } else {
-          res.status(404).send({ message: "Skill not found" });
-        }
+        const projects = await projectCollection.find().toArray();
+        res.send(projects);
       } catch (error) {
-        res.status(500).send({ message: "Failed to fetch skill", error });
+        res
+          .status(500)
+          .send({ message: "Failed to fetch projects data", error });
       }
     });
 
-    // Add a new skill to the collection
-    app.post("/skills", async (req, res) => {
-      const skill = req.body;
+    // Fetch a specific project by ID
+    app.get("/projects/:id", async (req, res) => {
+      const projectId = req.params.id;
       try {
-        const result = await skillCollection.insertOne(skill);
+        const project = await projectCollection.findOne({
+          _id: new ObjectId(projectId),
+        });
+        if (project) {
+          res.send(project);
+        } else {
+          res.status(404).send({ message: "Project not found" });
+        }
+      } catch (error) {
+        res.status(500).send({ message: "Failed to fetch project", error });
+      }
+    });
+
+    // Add a new project to the collection
+    app.post("/projects", async (req, res) => {
+      const project = req.body;
+      try {
+        const result = await projectCollection.insertOne(project);
         res.send(result);
       } catch (error) {
-        res.status(500).send({ message: "Failed to add skill", error });
+        res.status(500).send({ message: "Failed to add project", error });
       }
     });
 
-    // Delete a skill by ID
-    app.delete("/skills/:id", async (req, res) => {
+    // Delete a project by ID
+    app.delete("/projects/:id", async (req, res) => {
       const id = req.params.id;
       try {
-        const result = await skillCollection.deleteOne({ _id: new ObjectId(id) });
+        const result = await projectCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
         if (result.deletedCount === 1) {
-          res.send({ message: "Skill deleted successfully" });
+          res.send({ message: "Project deleted successfully" });
         } else {
-          res.status(404).send({ message: "Skill not found" });
+          res.status(404).send({ message: "Project not found" });
         }
       } catch (error) {
-        res.status(500).send({ message: "Failed to delete skill", error });
+        res.status(500).send({ message: "Failed to delete project", error });
       }
     });
 
     console.log("Connected to MongoDB successfully.");
   } finally {
-    // Commented out for persistent connection
+    // await client.close(); // Commented out for persistent connection
   }
 }
 run().catch(console.error);
