@@ -38,6 +38,7 @@ async function run() {
     const skillCollection = db.collection("skills");
     const projectCollection = db.collection("projects");
     const linksCollection = db.collection("links");
+    const blogsCollection = db.collection("blogs");
 
     // Project Routes
     app.get("/projects", async (req, res) => {
@@ -45,14 +46,18 @@ async function run() {
         const projects = await projectCollection.find().toArray();
         res.json(projects);
       } catch (error) {
-        res.status(500).json({ message: "Failed to fetch projects data", error });
+        res
+          .status(500)
+          .json({ message: "Failed to fetch projects data", error });
       }
     });
 
     app.get("/projects/:id", async (req, res) => {
       const projectId = req.params.id;
       try {
-        const project = await projectCollection.findOne({ _id: new ObjectId(projectId) });
+        const project = await projectCollection.findOne({
+          _id: new ObjectId(projectId),
+        });
         if (project) {
           res.json(project);
         } else {
@@ -84,7 +89,9 @@ async function run() {
         if (result.modifiedCount === 1) {
           res.json({ message: "Project updated successfully" });
         } else {
-          res.status(404).json({ message: "Project not found or no changes made" });
+          res
+            .status(404)
+            .json({ message: "Project not found or no changes made" });
         }
       } catch (error) {
         res.status(500).json({ message: "Failed to update project", error });
@@ -94,7 +101,9 @@ async function run() {
     app.delete("/projects/:id", async (req, res) => {
       const projectId = req.params.id;
       try {
-        const result = await projectCollection.deleteOne({ _id: new ObjectId(projectId) });
+        const result = await projectCollection.deleteOne({
+          _id: new ObjectId(projectId),
+        });
         if (result.deletedCount === 1) {
           res.json({ message: "Project deleted successfully" });
         } else {
@@ -118,7 +127,9 @@ async function run() {
     app.get("/skills/:id", async (req, res) => {
       const skillId = req.params.id;
       try {
-        const skill = await skillCollection.findOne({ _id: new ObjectId(skillId) });
+        const skill = await skillCollection.findOne({
+          _id: new ObjectId(skillId),
+        });
         if (skill) {
           res.json(skill);
         } else {
@@ -150,7 +161,9 @@ async function run() {
         if (result.modifiedCount === 1) {
           res.json({ message: "Skill updated successfully" });
         } else {
-          res.status(404).json({ message: "Skill not found or no changes made" });
+          res
+            .status(404)
+            .json({ message: "Skill not found or no changes made" });
         }
       } catch (error) {
         res.status(500).json({ message: "Failed to update skill", error });
@@ -160,7 +173,9 @@ async function run() {
     app.delete("/skills/:id", async (req, res) => {
       const skillId = req.params.id;
       try {
-        const result = await skillCollection.deleteOne({ _id: new ObjectId(skillId) });
+        const result = await skillCollection.deleteOne({
+          _id: new ObjectId(skillId),
+        });
         if (result.deletedCount === 1) {
           res.json({ message: "Skill deleted successfully" });
         } else {
@@ -193,12 +208,85 @@ async function run() {
           { $set: linksData },
           { upsert: true }
         );
-        res.status(200).json({ message: "Links data saved successfully", result });
+        res
+          .status(200)
+          .json({ message: "Links data saved successfully", result });
       } catch (error) {
         res.status(500).json({ message: "Failed to save links data", error });
       }
     });
 
+    // BlogS Routes
+    app.get("/blogs", async (req, res) => {
+      try {
+        const blogs = await blogsCollection.find().toArray();
+        res.json(blogs);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch skills data", error });
+      }
+    });
+
+    app.get("/blogs/:id", async (req, res) => {
+      const blogId = req.params.id;
+      try {
+        const blog = await blogsCollection.findOne({
+          _id: new ObjectId(blogId),
+        });
+        if (blog) {
+          res.json(blog);
+        } else {
+          res.status(404).json({ message: "Blog not found" });
+        }
+      } catch (error) {
+        res.status(500).json({ message: "Failed to fetch blog", error });
+      }
+    });
+
+    app.post("/blogs", async (req, res) => {
+      const blog = req.body;
+      try {
+        const result = await blogsCollection.insertOne(blog);
+        res.status(201).json({ message: "Blog added successfully", result });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to add blog", error });
+      }
+    });
+
+    app.put("/blogs/:id", async (req, res) => {
+      const blogId = req.params.id;
+      const updatedBlog = req.body;
+      try {
+        const result = await blogsCollection.updateOne(
+          { _id: new ObjectId(blogId) },
+          { $set: updatedBlog }
+        );
+        if (result.modifiedCount === 1) {
+          res.json({ message: "Blog updated successfully" });
+        } else {
+          res
+            .status(404)
+            .json({ message: "Blog not found or no changes made" });
+        }
+      } catch (error) {
+        res.status(500).json({ message: "Failed to update blog", error });
+      }
+    });
+
+    app.delete("/skills/:id", async (req, res) => {
+      const blogId = req.params.id;
+      try {
+        const result = await blogsCollection.deleteOne({
+          _id: new ObjectId(blogId),
+        });
+        if (result.deletedCount === 1) {
+          res.json({ message: "Blog deleted successfully" });
+        } else {
+          res.status(404).json({ message: "Blog not found" });
+        }
+      } catch (error) {
+        res.status(500).json({ message: "Failed to delete blog", error });
+      }
+    });
   } catch (error) {
     console.error("Failed to connect to MongoDB", error);
   }
